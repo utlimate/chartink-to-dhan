@@ -72,7 +72,7 @@ addCopyToTradingViewButton(
   "Copy to TradingView",
   "btn btn-default btn-primary",
   "add-to-watchlist",
-  copyAllTickersOnScreen
+  copytoTV
 );
 
 // add a fyers button to the screeener
@@ -80,7 +80,7 @@ addCopyToTradingViewButton(
   "Copy to Fyers",
   "btn btn-default btn-primary",
   "add-to-watchlist-fyers",
-  copyAllTickersOnScreenFyers
+  copytoFyers
 );
 
 function getPaginationLength() {
@@ -119,7 +119,11 @@ const delay = (t) => {
   return new Promise((res) => setTimeout(res, t));
 };
 
-async function copyAllTickersOnScreen() {
+async function copyAllTickersOnScreen(){
+  return;
+}
+
+async function copytoTV() {
   // if redirect to trading view is not enabled, return
   chrome.runtime.sendMessage(
     { message: "getChartRedirectState" },
@@ -204,7 +208,7 @@ async function copyAllTickersOnScreen() {
 }
 
 
-async function copyAllTickersOnScreenFyers() {
+async function copytoFyers() {
   // if redirect to trading view is not enabled, return
   chrome.runtime.sendMessage(
     { message: "getChartRedirectState" },
@@ -296,14 +300,15 @@ async function copyAllTickersOnScreenFyers() {
   );
 }
 
-
 // replace button text for 2 seconds
 function replaceButtonText(buttonId) {
   const button = document.getElementById(buttonId);
+  const buttonHTML = button.innerHTML;
   if (!button) return;
   button.innerHTML = "Copied to clipboard 📋";
   setTimeout(() => {
-    button.innerHTML = "Copy to TradingView";
+    // button.innerHTML = "Copy to TradingView";
+    button.innerHTML = buttonHTML;
   }, 2000);
 }
 
