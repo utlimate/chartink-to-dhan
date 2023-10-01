@@ -160,7 +160,7 @@ async function scrapePageTickers(allTickersArray){
 }
 
 // Scrape all tickers from all page
-async function scrapeAllTciers(){
+async function scrapeAllTickers(){
   var allTickersArray = [];
 
   const numberOfPages = getPaginationLength();
@@ -184,156 +184,30 @@ async function copyAllTickersOnScreen(){
 }
 
 async function copytoTV() {
-  // if redirect to trading view is not enabled, return
-  chrome.runtime.sendMessage(
-    { message: "getChartRedirectState" },
-    async function (response) {
-      if (response.chartRedirectState) {
-        let allTickersArray = []; // date header is added to the top of the list for trading view WL header, as request by Pattabhi Chekka
+  var allTickersArray = await scrapeAllTickers();
 
-        let allTags = [];
+  // add :NSE to the tickers
+  allTickersArray = addColonNSEtoTickers(allTickersArray);
 
-        const numberOfPages = getPaginationLength();
-
-        for (let i = 0; i < numberOfPages; i++) {
-          // if its the second page or more, wait for 2 seconds for the anchor tags to change
-          if (i > 0) {
-            await delay(200);
-          }
-
-          allTags.push(
-            document.querySelectorAll(
-              'a[href^="https://in.tradingview.com/chart/?symbol=NSE:"]'
-            )
-          );
-
-          nextPage();
-        }
-
-        // merge all arrays into one
-
-        const allTickers = allTags.map((tag) => Array.from(tag)).flat();
-
-        // get all tickers from the a tags
-        allTickers.forEach((ticker) => {
-          allTickersArray.push(
-            replaceSpecialCharsWithUnderscore(ticker.href.substring(45))
-          );
-        });
-        // add :NSE to the tickers
-        allTickersArray = addColonNSEtoTickers(allTickersArray);
-
-        createFakeTextAreaToCopyText(
-          [dateHeader, ...removeDuplicateTickers(allTickersArray)].join(", ")
-        );
-        replaceButtonText("add-to-watchlist");
-        return;
-      }
-      let allTickersArray = []; // date header is added to the top of the list for trading view WL header, as request by Pattabhi Chekka
-
-      let allTags = [];
-
-      const numberOfPages = getPaginationLength();
-
-      for (let i = 0; i < numberOfPages; i++) {
-        // if its the second page or more, wait for 2 seconds for the anchor tags to change
-        if (i > 0) {
-          await delay(200);
-        }
-
-        allTags.push(document.querySelectorAll('a[href^="/stocks/"]'));
-
-        nextPage();
-      }
-
-      const allTickers = allTags.map((tag) => Array.from(tag)).flat();
-
-      // get all tickers from the a tags
-      allTickers.forEach((ticker) => {
-        allTickersArray.push(
-          replaceSpecialCharsWithUnderscore(
-            removeDotHTML(ticker.href.substring(28))
-          )
-        );
-      });
-      // add :NSE to the tickers
-      allTickersArray = addColonNSEtoTickers(allTickersArray);
-
-      createFakeTextAreaToCopyText(
-        [dateHeader, ...removeDuplicateTickers(allTickersArray)].join(", ")
-      );
-      replaceButtonText("add-to-watchlist");
-    }
+  createFakeTextAreaToCopyText(
+    [dateHeader, ...removeDuplicateTickers(allTickersArray)].join(", ")
   );
+  replaceButtonText("add-to-watchlist");
 }
 
 async function copytoFyers() {
-  // if redirect to trading view is not enabled, return
-  chrome.runtime.sendMessage(
-    { message: "getChartRedirectState" },
-    async function (response) {
-      if (response.chartRedirectState) {
-        let allTickersArray = []; // date header is added to the top of the list for trading view WL header, as request by Pattabhi Chekka
+  var allTickersArray = await scrapeAllTickers();
+  
+  // add -EQ to the tickers
+  allTickersArray = addColonNSEEQtoTickers(allTickersArray)
 
-        const allTickers = await scrapeTags('https://in.tradingview.com/chart/?symbol=NSE:');
+  // console.log(allTickersArray)
 
-        replaceButtonText("add-to-watchlist-fyers");
-        
-        // get all tickers from the a tags
-        allTickers.forEach((ticker) => {
-          allTickersArray.push(
-            replaceSpecialCharsWithUnderscore(ticker.href.substring(45))
-          );
-        });
-        
-        // add -EQ to the tickers
-        allTickersArray = addColonNSEEQtoTickers(allTickersArray);
-
-        createFakeTextAreaToCopyText(
-          [dateHeader, ...removeDuplicateTickers(allTickersArray)].join(", ")
-        );
-        return;
-      }
-      let allTickersArray = []; // date header is added to the top of the list for trading view WL header, as request by Pattabhi Chekka
-
-      let allTags = [];
-
-      const numberOfPages = getPaginationLength();
-
-      for (let i = 0; i < numberOfPages; i++) {
-        // if its the second page or more, wait for 2 seconds for the anchor tags to change
-        if (i > 0) {
-          await delay(200);
-        }
-
-        allTags.push(document.querySelectorAll('a[href^="/stocks/"]'));
-
-        nextPage();
-      }
-
-      const allTickers = allTags.map((tag) => Array.from(tag)).flat();
-
-      // get all tickers from the a tags
-      allTickers.forEach((ticker) => {
-        allTickersArray.push(
-          replaceSpecialCharsWithUnderscore(
-            removeDotHTML(ticker.href.substring(28))
-          )
-        );
-      });
-      
-      // add -EQ to the tickers
-      allTickersArray = addColonNSEEQtoTickers(allTickersArray)
-
-      console.log(allTickersArray)
-
-      createFakeTextAreaToCopyText(
-        [dateHeader, ...removeDuplicateTickers(allTickersArray)].join(", ")
-      );
-      replaceButtonText("add-to-watchlist-fyers");
-    }
+  createFakeTextAreaToCopyText(
+    [dateHeader, ...removeDuplicateTickers(allTickersArray)].join(", ")
   );
-}
+  replaceButtonText("add-to-watchlist-fyers");
+  }
 
 // replace button text for 2 seconds
 function replaceButtonText(buttonId) {
