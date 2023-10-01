@@ -165,6 +165,12 @@ async function scrapeAllTickers(){
 
   const numberOfPages = getPaginationLength();
 
+  // going to first page
+  var pagination = document.getElementById('DataTables_Table_0_paginate')
+  var targetLink = pagination.querySelector('a[data-dt-idx="0"]');
+  targetLink.click();
+  await delay(200);
+
   for (let i = 0; i < numberOfPages; i++) {
     // if its the second page or more, wait for 2 seconds for the anchor tags to change
     if (i > 0) {
@@ -201,13 +207,14 @@ async function copytoFyers() {
   // add -EQ to the tickers
   allTickersArray = addColonNSEEQtoTickers(allTickersArray)
 
-  // console.log(allTickersArray)
+  //limit array to 52
+  allTickersArray = allTickersArray.slice(0, 52);
 
   createFakeTextAreaToCopyText(
     [dateHeader, ...removeDuplicateTickers(allTickersArray)].join(", ")
   );
   replaceButtonText("add-to-watchlist-fyers");
-  }
+}
 
 // replace button text for 2 seconds
 function replaceButtonText(buttonId) {
