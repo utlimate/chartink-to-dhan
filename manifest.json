@@ -11,6 +11,8 @@
       "matches": ["*://*.chartink.com/*"],
       "js": ["main.js"],
       "css": ["popup.css"]
+      "js": ["main.js"],
+      "css": ["popup.css"]
     }
   ],
   "action": {
