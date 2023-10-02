@@ -48,12 +48,12 @@ async function downloadDhanSymbols() {
 function getDhanSymbol(ticker){
   for (const row of dhanSymbols) {
     // matching dhan symbols with ticker
-    if (row[3] === ticker) {
+    if (row[3] === ticker && row[5] === '5.0000') {
       resultRow = row;
       return String(resultRow[0]) + String(resultRow[1]) + String(resultRow[2]) + ':' + String(resultRow[4]);
     }
   }
-  console.log('Row not found');
+  console.log(ticker +': Row not found');
   return;
 }
 
@@ -298,8 +298,15 @@ async function copytoDhan() {
     }
   });
 
+  const dhanHeader =
+  "# " +
+  new Date().toLocaleDateString("en-GB", {
+    day: '2-digit',
+    month: '2-digit',
+    year: '2-digit',
+  });
   createFakeTextAreaToCopyText(
-    [dateHeader, ...removeDuplicateTickers(dhanParsedSymbols)].join(", ")
+    [dhanHeader, ...removeDuplicateTickers(dhanParsedSymbols)].join(", ")
   );
   replaceButtonText("add-to-watchlist-dhan");
 }

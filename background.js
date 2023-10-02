@@ -39,14 +39,6 @@ function getChartRedirectState() {
 }
 
 async function downloadDhanSymbols() {
-  // await fetch('https://images.dhan.co/api-data/api-scrip-master.csv', {mode: 'no-cors'})
-  // .then(function(response){
-  //   const csvData = response.text();
-  // dhanSymbols = csvData.split('\n');
-  // })
-  // .catch(function(error){
-  //   console.log('Dhan symbols download failed', error)
-  // });
   try {
     // Step 1: Download CSV
     let dhanSymbols;
@@ -70,10 +62,11 @@ async function downloadDhanSymbols() {
         // Assuming SEM_EXM_EXCH_ID is in the first column and SEM_INSTRUMENT_NAME in the second column
         if (columns[0] === 'NSE' && columns[1] === 'E') {
           resultRow = columns;
-          dhanSymbols.push([columns[0], columns[1], columns[2], columns[5], columns[7]]);
+          dhanSymbols.push([columns[0], columns[1], columns[2], columns[5], columns[7], columns[11]]);
         }
       }
 
+      //save to local storage
       chrome.storage.local.set({ dhanSymbols });
       console.log('Sucessfull DHAN', info);
     } else {
