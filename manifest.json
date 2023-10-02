@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "Chartink To TradingView",
+  "name": "Redirect Chartink",
   "version": "2.1",
   "description": "Redirects Chartink Symbol Links to TradingView Chart",
   "icons": {
@@ -17,6 +17,7 @@
     "default_popup": "popup.html"
   },
   "permissions": ["clipboardWrite", "tabs", "storage"],
+  "host_permissions": ["*://images.dhan.co/*"],
   "background": {
     "service_worker": "background.js"
   }

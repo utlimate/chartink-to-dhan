@@ -38,6 +38,52 @@ function getChartRedirectState() {
   });
 }
 
+async function downloadDhanSymbols() {
+  // await fetch('https://images.dhan.co/api-data/api-scrip-master.csv', {mode: 'no-cors'})
+  // .then(function(response){
+  //   const csvData = response.text();
+  // dhanSymbols = csvData.split('\n');
+  // })
+  // .catch(function(error){
+  //   console.log('Dhan symbols download failed', error)
+  // });
+  try {
+    // Step 1: Download CSV
+    let dhanSymbols;
+    const response = await fetch('https://images.dhan.co/api-data/api-scrip-master.csv', {
+      method: 'GET',
+      // mode: 'no-cors', // this is to prevent browser from sending 'OPTIONS' method request first
+      headers: new Headers({
+              'Content-Type': 'application/octet-stream',
+              'connection': 'keep-alive',
+    }),
+    });
+    if (response.ok){
+      const csvData = await response.text();
+      csvRows = csvData.split('\n');
+      // chrome.storage.set(dhanSymbols);
+      let dhanSymbols = [];
+
+      for (const row of csvRows) {
+        const columns = row.split(',');
+    
+        // Assuming SEM_EXM_EXCH_ID is in the first column and SEM_INSTRUMENT_NAME in the second column
+        if (columns[0] === 'NSE' && columns[1] === 'E') {
+          resultRow = columns;
+          dhanSymbols.push([columns[0], columns[1], columns[2], columns[5], columns[7]]);
+        }
+      }
+
+      chrome.storage.local.set({ dhanSymbols });
+      console.log('Sucessfull DHAN', info);
+    } else {
+      console.log('Empty Response', error);
+    }
+  } catch (error) {
+    console.log('Error:', error);
+  }
+}
+
 // listener to listen for messages from popup.js
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.message === "getChartRedirectState") {
@@ -51,7 +97,9 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   }
   return true;
 });
+
 // on install set the chartRedirect state to true (maintain legacy functionality)
 chrome.runtime.onInstalled.addListener(() => {
   setChartRedirectState(true);
+  downloadDhanSymbols();
 });

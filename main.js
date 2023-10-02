@@ -1,5 +1,66 @@
+let dhanSymbols;
+
+// // Retrieve the the stored value, defaulting to an empty array.
+// chrome.storage.local.get('dhanSymbols', function(data) {
+//   console.log(`dhanSymbols's value is ${data.dhanSymbols}.`);
+// });
+
+function getCSVData() {
+  chrome.storage.local.get(['dhanSymbols'], function (result) {
+    if (result.dhanSymbols) {
+      dhanSymbols = result.dhanSymbols;
+    } else {
+      console.error('CSV Data not found in local storage.', error);
+    }
+  });
+}
+
+async function downloadDhanSymbols() {
+  // await fetch('https://images.dhan.co/api-data/api-scrip-master.csv', {mode: 'no-cors'})
+  // .then(function(response){
+  //   const csvData = response.text();
+  // dhanSymbols = csvData.split('\n');
+  // })
+  // .catch(function(error){
+  //   console.log('Dhan symbols download failed', error)
+  // });
+  try {
+    // Step 1: Download CSV
+    const response = await fetch('https://images.dhan.co/api-data/api-scrip-master.csv', {
+      method: 'GET',
+      mode: 'no-cors', // this is to prevent browser from sending 'OPTIONS' method request first
+      headers: new Headers({
+              'Content-Type': 'application/octet-stream',
+              'connection': 'keep-alive',
+    }),
+    });
+    if (response.ok){
+      const csvData = await response.text();
+      dhanSymbols = csvData.split('\n');
+    } else {
+      console.log('Empty Response', error);
+    }
+  } catch (error) {
+    console.log('Error:', error);
+  }
+}
+
+function getDhanSymbol(ticker){
+  for (const row of dhanSymbols) {
+    // matching dhan symbols with ticker
+    if (row[3] === ticker) {
+      resultRow = row;
+      return String(resultRow[0]) + String(resultRow[1]) + String(resultRow[2]) + ':' + String(resultRow[4]);
+    }
+  }
+  console.log('Row not found');
+  return;
+}
+
 window.onload = function () {
   changeURL();
+  // downloadDhanSymbols();
+  getCSVData();
 };
 
 const dateHeader =
@@ -81,6 +142,14 @@ addCopyToTradingViewButton(
   "btn btn-default btn-primary",
   "add-to-watchlist-fyers",
   copytoFyers
+);
+
+// add a dhan button to the screeener
+addCopyToTradingViewButton(
+  "Copy to Dhan",
+  "btn btn-default btn-primary",
+  "add-to-watchlist-dhan",
+  copytoDhan
 );
 
 function getPaginationLength() {
@@ -208,13 +277,33 @@ async function copytoFyers() {
   allTickersArray = addColonNSEEQtoTickers(allTickersArray)
 
   //limit array to 52
-  allTickersArray = allTickersArray.slice(0, 52);
+  allTickersArray = allTickersArray.slice(0, 51);
 
   createFakeTextAreaToCopyText(
     [dateHeader, ...removeDuplicateTickers(allTickersArray)].join(", ")
   );
   replaceButtonText("add-to-watchlist-fyers");
 }
+
+async function copytoDhan() {
+  var allTickersArray = await scrapeAllTickers();
+
+  var dhanParsedSymbols = [];
+  
+  // add -EQ to the tickers
+  allTickersArray.forEach((ticker) => {
+    symbol = getDhanSymbol(ticker);
+    if (symbol) {
+      dhanParsedSymbols.push(symbol);
+    }
+  });
+
+  createFakeTextAreaToCopyText(
+    [dateHeader, ...removeDuplicateTickers(dhanParsedSymbols)].join(", ")
+  );
+  replaceButtonText("add-to-watchlist-dhan");
+}
+
 
 // replace button text for 2 seconds
 function replaceButtonText(buttonId) {
