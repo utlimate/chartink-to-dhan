@@ -137,12 +137,13 @@ addCopyToTradingViewButton(
 );
 
 // add a fyers button to the screeener
-addCopyToTradingViewButton(
-  "Copy to Fyers",
-  "btn btn-default btn-primary",
-  "add-to-watchlist-fyers",
-  copytoFyers
-);
+// Fyers has watchlist saving problem hence move to dhan
+// addCopyToTradingViewButton(
+//   "Copy to Fyers",
+//   "btn btn-default btn-primary",
+//   "add-to-watchlist-fyers",
+//   copytoFyers
+// );
 
 // add a dhan button to the screeener
 addCopyToTradingViewButton(
@@ -254,6 +255,10 @@ async function scrapeAllTickers(){
   return allTickersArray;
 }
 
+function scrapeScreenerName(){
+  return document.evaluate('//*[@id="root"]/div[2]/div/div/div/div[1]/h1', document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue.innerText
+}
+
 async function copyAllTickersOnScreen(){
   return;
 }
@@ -304,13 +309,13 @@ async function copytoDhan() {
     day: '2-digit',
     month: '2-digit',
     year: '2-digit',
-  });
+  }) + '-' +
+  scrapeScreenerName();
   createFakeTextAreaToCopyText(
     [dhanHeader, ...removeDuplicateTickers(dhanParsedSymbols)].join(", ")
   );
   replaceButtonText("add-to-watchlist-dhan");
 }
-
 
 // replace button text for 2 seconds
 function replaceButtonText(buttonId) {
