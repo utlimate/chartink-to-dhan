@@ -17,7 +17,7 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
             .replace(".html", "");
 
           chrome.tabs.update(tabId, {
-            url: "https://in.tradingview.com/chart/?symbol=NSE:" + stockSymbol,
+            url: "https://trade.fyers.in/?funcName=openChart&symbolName=" + stockSymbol,
           });
         }
       }
@@ -77,6 +77,44 @@ async function downloadDhanSymbols() {
   }
 }
 
+async function downloadFyersSymbols() {
+  try {
+    // Step 1: Download CSV
+    const response = await fetch('https://public.fyers.in/sym_details/NSE_CM.csv', {
+      method: 'GET',
+      // mode: 'no-cors', // this is to prevent browser from sending 'OPTIONS' method request first
+      headers: new Headers({
+              'Content-Type': 'application/octet-stream',
+              'connection': 'keep-alive',
+    }),
+    });
+    if (response.ok){
+      const csvData = await response.text();
+      csvRows = csvData.split('\n');
+      // chrome.storage.set(dhanSymbols);
+      let fyersSymbols = [];
+
+      for (const row of csvRows) {
+        const columns = row.split(',');
+    
+        // Assuming SEM_EXM_EXCH_ID is in the first column and SEM_INSTRUMENT_NAME in the second column
+        if (columns[2] === '0' && columns[10] === '10') {
+          // resultRow = columns;
+          fyersSymbols.push([columns[1], columns[9], columns[13]]);
+        }
+      }
+
+      //save to local storage
+      chrome.storage.local.set({ fyersSymbols });
+      console.log('Sucessfully Download Fyers Symbol', info);
+    } else {
+      console.log('Empty Response', error);
+    }
+  } catch (error) {
+    console.log('Error:', error);
+  }
+}
+
 // listener to listen for messages from popup.js
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.message === "getChartRedirectState") {
@@ -95,4 +133,5 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 chrome.runtime.onInstalled.addListener(() => {
   setChartRedirectState(true);
   downloadDhanSymbols();
+  downloadFyersSymbols();
 });
